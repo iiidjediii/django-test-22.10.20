@@ -5,8 +5,10 @@ from catalog.models import Book, Author, BookInstance, Genre
 from django.views import generic
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+#from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 
-
+#@login_required
 def index(request):
     """View function for home page of site."""
 
@@ -59,3 +61,13 @@ class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         return BookInstance.objects.filter(borrower=self.request.user).filter(status__exact='o').order_by('due_back')
+
+class LoanedBooksListView(PermissionRequiredMixin, generic.ListView):
+
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_loaned.html'
+    paginate_by = 10
+
+    permission_required = 'catalog.can_mark_returned'
+    def get_queryset(self):
+        return BookInstance.objects.filter(status__exact='o').order_by('due_back')
